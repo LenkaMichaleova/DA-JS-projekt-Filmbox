@@ -103,4 +103,167 @@ const filmy = [
 			'Na zámek v podhůří Krkonoš přijíždí jeho nový majitel Štěpán se svojí snoubenkou, krásnou komtesou Blankou, a mladším bratrem Adamem. Cestou kočár nešťastně srazí kolemjdoucí dívku, Adam jí pomůže a ona se do něj zamiluje. Na zámku Adam objeví starou vlašskou knihu, která by měla obsahovat cestu k pokladům. Tajemné značky vlašské knihy však nedokáže vyluštit ani národopisec Jiráček, který v kraji sbírá pověsti a nevychází z údivu nad tím, že zdejší lidé stále věří v Krakonoše. Na zámku se objeví záhadný cizinec a nabídne Štěpánovi, že jej k pokladu za určitých podmínek dovede. Výprava do hor může začít. Naplní se Liduščina láska k Adamovi? Jakou záhadu skrývá starý obraz na zámku Hůrka a co strašlivého se v horách kdysi odehrálo? A kdo je vlastně Krakonoš a jaké je jeho největší tajemství? (csfd.cz, Česká televize)',
 		premiera: '2022-12-24',
 	},
+	{
+		id: 'harry-potter-a-jak-to-bylo-dal',
+		nazev: 'Harry Potter a jak to bylo dál',
+		plakat: {
+			url: 'https://assets.mycast.io/posters/harry-potter-the-next-generation-fan-casting-poster-292850-large.jpg?1677254859',
+			sirka: 588,
+			vyska: 828,
+		},
+		ochutnavka: 'Harry, Ron a Hermiona zase tropí neplechu',
+		popis:
+			'Přichází nová generace kouzelníků! Dočkáme se ale kompletně nového obsazení. Fanoušci jsou zvědaví, ale zároveň se obávají, že nová adaptace slavného fenoménu bude krok špatným směrem.',
+		premiera: '2025-04-30',
+	}
 ]
+
+// vypsání informací
+const idFilmu = window.location.hash.slice(1)
+const film = filmy.find((f) => idFilmu === f.id)
+
+document.querySelector(".col-md-5").innerHTML = `
+	<img	
+		src="${film.plakat.url}"
+		alt="plakát"
+		class="img-fluid rounded-start"
+		width="${film.plakat.sirka}"
+		height="${film.plakat.vyska}"
+	/>`
+document.querySelector(".card-title").textContent = `${film.nazev}`
+document.querySelector(".card-text").textContent = `${film.popis}`
+document.querySelector("#premiera").innerHTML =`
+	Premiéra <strong>${dayjs(film.premiera).format("D.M.YYYY")}</strong>
+	`
+
+
+// odpočet do premiéry
+const pocetDni = dayjs().diff(film.premiera, 'days')
+let koncovka = ""
+let koncovka2 = ""
+
+if(pocetDni == 1) {
+	koncovka = "dnem"
+	koncovka2 = "den"
+} else if (pocetDni > 0 && pocetDni <= 4) {
+	koncovka = "dny"
+	koncovka2 = "dny"
+} else {
+	koncovka = "dny"
+	koncovka2 = "dní"
+}
+
+if (dayjs().format("YYYY-MM-DD") === dayjs(film.premiera).format("YYYY-MM-DD")) {
+	document.querySelector("#premiera").innerHTML += `<br>Premiéra je dnes!`
+} else if (dayjs().isAfter(dayjs(film.premiera))) {
+	document.querySelector("#premiera").innerHTML += `<br>Premiéra byla před ${pocetDni} ${koncovka}`
+} else {
+	document.querySelector("#premiera").innerHTML += `<br>Musíš počkat ještě ${pocetDni * -1} ${koncovka2}`
+}
+
+
+// hodnocení - hvězdičky
+const hodnoceni = (cislo) => {
+	document.querySelectorAll(".fa-star").forEach((hvezda, i) => {
+		if (i + 1 <= cislo) {
+			hvezda.classList.remove("far")
+			hvezda.classList.add("fas")
+		} else {
+			hvezda.classList.remove("fas")
+			hvezda.classList.add("far")
+		}
+	})
+}
+
+let vybranaHvezda
+document.querySelectorAll(".stars button").forEach((button, i) => {
+	button.addEventListener("click", () => {
+		hodnoceni(i + 1)
+		vybranaHvezda = i + 1
+	})
+	button.addEventListener("mouseenter", (e) => {
+		hodnoceni(i + 1)
+	})
+	button.addEventListener("mouseleave", () => {
+		hodnoceni(vybranaHvezda)
+	})
+})
+
+
+// poznámky (textové pole + checkbox)
+const messageInput = document.querySelector("#message-input")
+const termsCheckbox = document.querySelector("#terms-checkbox")
+
+document.querySelector("#note-form").addEventListener("submit", (e) => {
+    e.preventDefault()
+	if (messageInput.value.length == 0) {
+		termsCheckbox.classList.remove("is-invalid")
+		messageInput.classList.add("is-invalid")
+		messageInput.focus(document.querySelector(".form-label"))
+	} else {
+		messageInput.classList.remove("is-invalid")
+		if (!termsCheckbox.checked) {
+			termsCheckbox.classList.add("is-invalid")
+			termsCheckbox.focus(document.querySelector("#terms-checkbox"))
+		} else {
+			document.querySelector("#note-form").innerHTML = `${messageInput.value}`
+		}
+	}
+})
+
+
+// video
+if (document.contains(document.querySelector("#prehravac"))) {
+	document.querySelector(".play").addEventListener("click", () => {
+		document.querySelector("video").play()
+	})
+
+	document.querySelector("video").addEventListener("playing", () => {
+		document.querySelector("#prehravac").classList.add("playing")
+	})
+
+	document.querySelector(".pause").addEventListener("click", () => {
+		document.querySelector("video").pause()
+		document.querySelector("video").addEventListener("pause", () => {
+			document.querySelector("#prehravac").classList.remove("playing")
+		})
+	})
+
+	document.querySelector("video").addEventListener("timeupdate", () => {
+		let cas = Math.round(document.querySelector("video").currentTime)
+		let vterina = Math.floor((cas % 60)).toString().padStart(2, "0")
+		let minuta = Math.floor((cas / 60)).toString().padStart(2, "0")
+
+		document.querySelector(".current-time").textContent = `${minuta}:${vterina}`
+	})
+
+	document.addEventListener("keydown", (e) => {
+		if (
+			e.code === 'Space' &&
+			e.target.tagName !== 'TEXTAREA' &&
+			e.target.tagName !== 'INPUT' &&
+			e.target.tagName !== 'BUTTON'
+		  ) {
+			e.preventDefault()
+			if (document.querySelector("#prehravac").classList.contains("playing")) {
+				document.querySelector("video").pause()
+				document.querySelector("#prehravac").classList.remove("playing")
+			} else {
+				document.querySelector("#prehravac video").play()
+			}
+		  }
+	})
+}
+
+const zobrazitOvladaciPanel = () => {
+	clearTimeout(casovac)
+	casovac = setTimeout(skrytOvladaciPanel, 3000)
+	document.querySelector(".player-controls").classList.remove('hidden')
+}
+const skrytOvladaciPanel = () => {
+	document.querySelector(".player-controls").classList.add('hidden')
+}
+
+let casovac
+document.addEventListener('mousemove', zobrazitOvladaciPanel)
+document.addEventListener('keydown', zobrazitOvladaciPanel)
